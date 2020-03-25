@@ -1,0 +1,25 @@
+print('HelloWorld')
+
+print("a" "abc")
+
+print("hello")
+
+print("1")
+print("2")
+
+print(1)
+
+total = 790 + 680 + 290
+total / 2
+
+total
+
+total = 100
+
+animal = "dog"
+
+print(total)
+
+print(animal)
+
+animal
