@@ -1,0 +1,331 @@
+# 定番ライブラリ
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データ分割
+from sklearn.model_selection import train_test_split
+
+# Random Forest 分類モデル
+from sklearn.ensemble import RandomForestClassifier
+
+# ランダムサーチ
+from sklearn.model_selection import RandomizedSearchCV
+
+# Random Forest 判断の可視化
+from sklearn import tree
+import pydotplus as pdp
+from IPython.display import Image
+
+# Neural Network 関連
+import keras
+from keras.utils import np_utils
+from keras.models import Sequential
+from keras.layers import Activation, InputLayer, Dense
+from keras.optimizers import Adam
+
+# Neural Network での交差検証用
+from keras.wrappers.scikit_learn import KerasClassifier
+
+data_wine = pd.read_csv("wine.csv", engine="python", encoding="s-jis")
+
+# データの内容を確認
+data_wine
+
+	wine_type	alcohol	malic_acid	ash	alcalinity_of_ash	magnesium	total_phenols	flavanoids	nonflavanoid_phenols	proanthocyanins	color_intensity	hue	OD280/OD315_of_diluted_wines	proline
+0	1	14.23	1.71	2.43	15.6	127	2.80	3.06	0.28	2.29	5.64	1.04	3.92	1065
+1	1	13.20	1.78	2.14	11.2	100	2.65	2.76	0.26	1.28	4.38	1.05	3.40	1050
+2	1	13.16	2.36	2.67	18.6	101	2.80	3.24	0.30	2.81	5.68	1.03	3.17	1185
+3	1	14.37	1.95	2.50	16.8	113	3.85	3.49	0.24	2.18	7.80	0.86	3.45	1480
+4	1	13.24	2.59	2.87	21.0	118	2.80	2.69	0.39	1.82	4.32	1.04	2.93	735
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+173	3	13.71	5.65	2.45	20.5	95	1.68	0.61	0.52	1.06	7.70	0.64	1.74	740
+174	3	13.40	3.91	2.48	23.0	102	1.80	0.75	0.43	1.41	7.30	0.70	1.56	750
+175	3	13.27	4.28	2.26	20.0	120	1.59	0.69	0.43	1.35	10.20	0.59	1.56	835
+176	3	13.17	2.59	2.37	20.0	120	1.65	0.68	0.53	1.46	9.30	0.60	1.62	840
+177	3	14.13	4.10	2.74	24.5	96	2.05	0.76	0.56	1.35	9.20	0.61	1.60	560
+178 rows × 14 columns
+
+# 説明変数Xと目的変数yに分離
+X = data_wine.drop("wine_type", axis=1)
+y = data_wine["wine_type"]
+
+## 学習/テスト用データに分ける
+
+# （学習：テスト）＝（0.67：0.33）で分割
+X_train_valid, X_test, y_train_valid, y_test = train_test_split(X, y, test_size=0.33)
+
+params = {
+    "max_depth": [2, 4, 6, 8, None],
+    "n_estimators": [50,100,200,300,400,500],
+    "max_features": range(1, 11),
+    "min_samples_split": range(2, 11),
+    "min_samples_leaf": range(1, 11)
+}
+
+rscv = RandomizedSearchCV(RandomForestClassifier(), params, cv=5, n_iter=50)
+rscv.fit(X_train_valid, y_train_valid)
+            
+print("Best score: {}".format(rscv.best_score_))
+print("Best parameters: {}".format(rscv.best_params_))
+
+Best score: 0.9833333333333334
+Best parameters: {'n_estimators': 500, 'min_samples_split': 6, 'min_samples_leaf': 3, 'max_features': 2, 'max_depth': 4}
+
+# 最良モデルを取り出す
+best_estimator = rscv.best_estimator_
+
+# そのモデルのパラメータを確認
+print(best_estimator.get_params())
+
+{'bootstrap': True, 'ccp_alpha': 0.0, 'class_weight': None, 'criterion': 'gini', 'max_depth': 4, 'max_features': 2, 'max_leaf_nodes': None, 'max_samples': None, 'min_impurity_decrease': 0.0, 'min_impurity_split': None, 'min_samples_leaf': 3, 'min_samples_split': 6, 'min_weight_fraction_leaf': 0.0, 'n_estimators': 500, 'n_jobs': None, 'oob_score': False, 'random_state': None, 'verbose': 0, 'warm_start': False}
+
+# テストデータで精度評価
+rscv.score(X_test, y_test)
+
+0.9830508474576272
+
+# ランキングdot_data = tree.export_graphviz(best_estimator.estimators_[0], # 決定木オブジェクトを一つ指定する
+                                out_file=None, # ファイル生成せずに変数に入れる
+                                filled=True, # Trueにすると、分岐の際にどちらのノードに多く分類されたのか色で示してくれる
+                                rounded=True, # Trueにすると、ノードの角を丸く描画する
+                                feature_names=X_train_valid.columns, # これを指定しないとチャート上で特徴量の名前が表示されない
+                                class_names=np.unique(y_train_valid.astype(str)) # これを指定しないとチャート上で分類名が表示されない
+                                )
+graph = pdp.graph_from_dot_data(dot_data)
+Image(graph.create_png())
+
+# モデル定義
+model = Sequential()  # 空のモデル
+model.add(InputLayer(input_shape=(X_train_valid.shape[1],)))  # 入力層を追加
+model.add(Dense(5, activation='relu', kernel_initializer='truncated_normal'))  # 中間層を追加
+model.add(Dense(3, activation='softmax'))  # 出力層を追加
+
+# 上記で定義したモデルを実際に構築
+model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['acc'])
+
+せず質素に羅列した場合
+print(X_train_valid.columns)
+print(best_estimator.feature_importances_)
+
+Index(['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium',
+       'total_phenols', 'flavanoids', 'nonflavanoid_phenols',
+       'proanthocyanins', 'color_intensity', 'hue',
+       'OD280/OD315_of_diluted_wines', 'proline'],
+      dtype='object')
+[0.13416242 0.03509468 0.01758584 0.03945849 0.05088425 0.05810559
+ 0.13290436 0.01921899 0.04204312 0.11925389 0.09535971 0.10933028
+ 0.14659839]
+ 
+ # グラフ可視化用に加工した場合
+# モデル定義
+model = Sequential()  # 空のモデル
+model.add(InputLayer(input_shape=(X_train_valid.shape[1],)))  # 入力層を追加
+model.add(Dense(5, activation='relu', kernel_initializer='truncated_normal'))  # 中間層を追加
+model.add(Dense(3, activation='softmax'))  # 出力層を追加
+
+# 上記で定義したモデルを実際に構築
+model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['acc'])
+
+
+df_imp = pd.DataFrame(best_estimator.feature_importances_, columns=["importance"])
+df_imp["Feature Names"] = X_train_valid.columns
+df_imp.set_index("Feature Names", inplace=True)
+df_imp.sort_values(by="importance").plot(kind="barh", figsize=(5, 5))
+plt.show()
+
+dot_data = tree.export_graphviz(best_estimator.estimators_[0], # 決定木オブジェクトを一つ指定する
+                                out_file=None, # ファイル生成せずに変数に入れる
+                                filled=True, # Trueにすると、分岐の際にどちらのノードに多く分類されたのか色で示してくれる
+                                rounded=True, # Trueにすると、ノードの角を丸く描画する
+                                feature_names=X_train_valid.columns, # これを指定しないとチャート上で特徴量の名前が表示されない
+                                class_names=np.unique(y_train_valid.astype(str)) # これを指定しないとチャート上で分類名が表示されない
+                                )
+graph = pdp.graph_from_dot_data(dot_data)
+Image(graph.create_png())
+
+# モデル定義
+model = Sequential()  # 空のモデル
+model.add(InputLayer(input_shape=(X_train_valid.shape[1],)))  # 入力層を追加
+model.add(Dense(5, activation='relu', kernel_initializer='truncated_normal'))  # 中間層を追加
+model.add(Dense(3, activation='softmax'))  # 出力層を追加
+
+# 上記で定義したモデルを実際に構築
+model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['acc'])
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:66: The name tf.get_default_graph is deprecated. Please use tf.compat.v1.get_default_graph instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:541: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:4479: The name tf.truncated_normal is deprecated. Please use tf.random.truncated_normal instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:4432: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/optimizers.py:793: The name tf.train.Optimizer is deprecated. Please use tf.compat.v1.train.Optimizer instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:3576: The name tf.log is deprecated. Please use tf.math.log instead.
+
+# 学習を実行し、学習過程をresultに格納
+result = model.fit(X_train_valid, np_utils.to_categorical(y_train_valid-1), epochs=50, batch_size=10, verbose=1)
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:1033: The name tf.assign_add is deprecated. Please use tf.compat.v1.assign_add instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:1020: The name tf.assign is deprecated. Please use tf.compat.v1.assign instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:3005: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+Epoch 1/50
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:190: The name tf.get_default_session is deprecated. Please use tf.compat.v1.get_default_session instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:197: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:207: The name tf.global_variables is deprecated. Please use tf.compat.v1.global_variables instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:216: The name tf.is_variable_initialized is deprecated. Please use tf.compat.v1.is_variable_initialized instead.
+
+WARNING:tensorflow:From /usr/local/lib/python3.6/dist-packages/keras/backend/tensorflow_backend.py:223: The name tf.variables_initializer is deprecated. Please use tf.compat.v1.variables_initializer instead.
+
+119/119 [==============================] - 1s 5ms/step - loss: 8.4000 - acc: 0.3782
+Epoch 2/50
+119/119 [==============================] - 0s 234us/step - loss: 7.2870 - acc: 0.3613
+Epoch 3/50
+119/119 [==============================] - 0s 195us/step - loss: 4.8880 - acc: 0.1681
+Epoch 4/50
+119/119 [==============================] - 0s 152us/step - loss: 3.7560 - acc: 0.2353
+Epoch 5/50
+119/119 [==============================] - 0s 184us/step - loss: 3.0340 - acc: 0.1008
+Epoch 6/50
+119/119 [==============================] - 0s 165us/step - loss: 2.4075 - acc: 0.1849
+Epoch 7/50
+119/119 [==============================] - 0s 140us/step - loss: 1.9564 - acc: 0.1345
+Epoch 8/50
+119/119 [==============================] - 0s 134us/step - loss: 1.5531 - acc: 0.1765
+Epoch 9/50
+119/119 [==============================] - 0s 184us/step - loss: 1.2582 - acc: 0.2437
+Epoch 10/50
+119/119 [==============================] - 0s 148us/step - loss: 1.1042 - acc: 0.3613
+Epoch 11/50
+119/119 [==============================] - 0s 135us/step - loss: 0.9579 - acc: 0.4958
+Epoch 12/50
+119/119 [==============================] - 0s 144us/step - loss: 0.8870 - acc: 0.5798
+Epoch 13/50
+119/119 [==============================] - 0s 168us/step - loss: 0.8361 - acc: 0.6134
+Epoch 14/50
+119/119 [==============================] - 0s 144us/step - loss: 0.7769 - acc: 0.6555
+Epoch 15/50
+119/119 [==============================] - 0s 186us/step - loss: 0.7489 - acc: 0.6387
+Epoch 16/50
+119/119 [==============================] - 0s 156us/step - loss: 0.7247 - acc: 0.6555
+Epoch 17/50
+119/119 [==============================] - 0s 170us/step - loss: 0.7117 - acc: 0.6555
+Epoch 18/50
+119/119 [==============================] - 0s 127us/step - loss: 0.6960 - acc: 0.6387
+Epoch 19/50
+119/119 [==============================] - 0s 136us/step - loss: 0.6960 - acc: 0.6555
+Epoch 20/50
+119/119 [==============================] - 0s 155us/step - loss: 0.6848 - acc: 0.6387
+Epoch 21/50
+119/119 [==============================] - 0s 130us/step - loss: 0.6751 - acc: 0.6387
+Epoch 22/50
+119/119 [==============================] - 0s 164us/step - loss: 0.6833 - acc: 0.6723
+Epoch 23/50
+119/119 [==============================] - 0s 153us/step - loss: 0.6511 - acc: 0.6555
+Epoch 24/50
+119/119 [==============================] - 0s 162us/step - loss: 0.6623 - acc: 0.6387
+Epoch 25/50
+119/119 [==============================] - 0s 152us/step - loss: 0.6445 - acc: 0.6387
+Epoch 26/50
+119/119 [==============================] - 0s 211us/step - loss: 0.6654 - acc: 0.6555
+Epoch 27/50
+119/119 [==============================] - 0s 140us/step - loss: 0.6470 - acc: 0.6723
+Epoch 28/50
+119/119 [==============================] - 0s 168us/step - loss: 0.6346 - acc: 0.6891
+Epoch 29/50
+119/119 [==============================] - 0s 151us/step - loss: 0.6389 - acc: 0.6555
+Epoch 30/50
+119/119 [==============================] - 0s 168us/step - loss: 0.6340 - acc: 0.6807
+Epoch 31/50
+119/119 [==============================] - 0s 138us/step - loss: 0.6245 - acc: 0.7059
+Epoch 32/50
+119/119 [==============================] - 0s 173us/step - loss: 0.6268 - acc: 0.6639
+Epoch 33/50
+119/119 [==============================] - 0s 157us/step - loss: 0.6227 - acc: 0.6975
+Epoch 34/50
+119/119 [==============================] - 0s 142us/step - loss: 0.6257 - acc: 0.6723
+Epoch 35/50
+119/119 [==============================] - 0s 137us/step - loss: 0.6144 - acc: 0.6975
+Epoch 36/50
+119/119 [==============================] - 0s 144us/step - loss: 0.6250 - acc: 0.6555
+Epoch 37/50
+119/119 [==============================] - 0s 141us/step - loss: 0.6175 - acc: 0.6807
+Epoch 38/50
+119/119 [==============================] - 0s 132us/step - loss: 0.6112 - acc: 0.6723
+Epoch 39/50
+119/119 [==============================] - 0s 153us/step - loss: 0.6153 - acc: 0.6723
+Epoch 40/50
+119/119 [==============================] - 0s 147us/step - loss: 0.6128 - acc: 0.6891
+Epoch 41/50
+119/119 [==============================] - 0s 143us/step - loss: 0.6086 - acc: 0.6807
+Epoch 42/50
+119/119 [==============================] - 0s 132us/step - loss: 0.6166 - acc: 0.6723
+Epoch 43/50
+119/119 [==============================] - 0s 161us/step - loss: 0.6294 - acc: 0.6639
+Epoch 44/50
+119/119 [==============================] - 0s 171us/step - loss: 0.6294 - acc: 0.6975
+Epoch 45/50
+119/119 [==============================] - 0s 166us/step - loss: 0.6094 - acc: 0.7059
+Epoch 46/50
+119/119 [==============================] - 0s 186us/step - loss: 0.6036 - acc: 0.6891
+Epoch 47/50
+119/119 [==============================] - 0s 157us/step - loss: 0.6036 - acc: 0.6891
+Epoch 48/50
+119/119 [==============================] - 0s 133us/step - loss: 0.6020 - acc: 0.6723
+Epoch 49/50
+119/119 [==============================] - 0s 150us/step - loss: 0.6138 - acc: 0.6555
+Epoch 50/50
+119/119 [==============================] - 0s 138us/step - loss: 0.6203 - acc: 0.6639
+
+# 学習過程の正解率推移をプロット
+plt.plot(result.epoch, result.history["acc"])
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.show()
+
+# テストデータで精度評価
+list(zip(model.metrics_names, model.evaluate(X_test, np_utils.to_categorical(y_test-1))))
+
+59/59 [==============================] - 0s 549us/step
+[('loss', 0.5651946704266435), ('acc', 0.69491525322704)]
+
+# 選択されたパラメータからモデルを構築する関数
+def keras_model(hidden_layers, activation, optimizer):
+    model = Sequential()
+    model.add(InputLayer(input_shape=(X_train_valid.shape[1],)))  # 入力層を追加
+    for i in range(len(hidden_layers)):
+        model.add(Dense(hidden_layers[i], activation=activation, kernel_initializer='truncated_normal'))
+    model.add(Dense(len(np.unique(y_train_valid)), activation="softmax"))
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    model.summary()
+    return model
+    
+# 学習データをRandomizedSearchCVにかける
+
+params = {
+    "hidden_layers":
+    [
+        [5],
+        [6,4]
+    ],
+    "activation": ["relu", "sigmoid", "tanh"], 
+    "optimizer": ["adam"], 
+    "batch_size": [5, 30, 50],
+    "epochs": [10, 30, 50]
+}
+
+model = KerasClassifier(build_fn=keras_model, verbose=1)
+rscv = RandomizedSearchCV(model, params, cv=2, verbose=1, n_iter=3)
+
+result = rscv.fit(X_train_valid, np_utils.to_categorical(y_train_valid-1))
