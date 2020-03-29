@@ -1,0 +1,540 @@
+# 定番ライブラリ
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データ分割
+from sklearn.model_selection import train_test_split
+
+# Neural Network 関連
+import keras
+from keras.utils import np_utils
+from keras.models import Sequential
+from keras.layers import Activation, InputLayer, Dense
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping
+
+# R2乗値
+from sklearn.metrics import r2_score
+
+data_wine = pd.read_csv('/content/wine.csv',engine="python",encoding="s-jis")
+
+data_wine
+
+
+wine_type	alcohol	malic_acid	ash	alcalinity_of_ash	magnesium	total_phenols	flavanoids	nonflavanoid_phenols	proanthocyanins	color_intensity	hue	OD280/OD315_of_diluted_wines	proline
+0	1	14.23	1.71	2.43	15.6	127	2.80	3.06	0.28	2.29	5.64	1.04	3.92	1065
+1	1	13.20	1.78	2.14	11.2	100	2.65	2.76	0.26	1.28	4.38	1.05	3.40	1050
+2	1	13.16	2.36	2.67	18.6	101	2.80	3.24	0.30	2.81	5.68	1.03	3.17	1185
+3	1	14.37	1.95	2.50	16.8	113	3.85	3.49	0.24	2.18	7.80	0.86	3.45	1480
+4	1	13.24	2.59	2.87	21.0	118	2.80	2.69	0.39	1.82	4.32	1.04	2.93	735
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+173	3	13.71	5.65	2.45	20.5	95	1.68	0.61	0.52	1.06	7.70	0.64	1.74	740
+174	3	13.40	3.91	2.48	23.0	102	1.80	0.75	0.43	1.41	7.30	0.70	1.56	750
+175	3	13.27	4.28	2.26	20.0	120	1.59	0.69	0.43	1.35	10.20	0.59	1.56	835
+176	3	13.17	2.59	2.37	20.0	120	1.65	0.68	0.53	1.46	9.30	0.60	1.62	840
+177	3	14.13	4.10	2.74	24.5	96	2.05	0.76	0.56	1.35	9.20	0.61	1.60	560
+178 rows × 14 columns
+
+x = data_wine.drop("wine_type", axis= 1)
+y = data_wine["wine_type"]
+
+x_train_valid,x_test,y_train_valid,y_test = train_test_split(x,y,test_size = 0.33)
+
+model = Sequential()
+model.add(InputLayer(input_shape=(x_train_valid.shape[1],)))
+model.add(Dense(5,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(3,activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',optimizer = Adam(),metrics = ['accuracy'])
+
+# 学習を実行し、学習過程をresultに格納
+
+result = model.fit(x_train_valid,np_utils.to_categorical(y_train_valid-1),epochs=50,batch_size = 10,verbose = 1)
+
+Epoch 1/50
+119/119 [==============================] - 0s 174us/step - loss: 0.1402 - acc: 0.9748
+Epoch 2/50
+119/119 [==============================] - 0s 165us/step - loss: 0.1417 - acc: 0.9496
+Epoch 3/50
+119/119 [==============================] - 0s 178us/step - loss: 0.1468 - acc: 0.9580
+Epoch 4/50
+119/119 [==============================] - 0s 170us/step - loss: 0.1422 - acc: 0.9580
+Epoch 5/50
+119/119 [==============================] - 0s 134us/step - loss: 0.1327 - acc: 0.9664
+Epoch 6/50
+119/119 [==============================] - 0s 165us/step - loss: 0.1370 - acc: 0.9664
+Epoch 7/50
+119/119 [==============================] - 0s 160us/step - loss: 0.1365 - acc: 0.9580
+Epoch 8/50
+119/119 [==============================] - 0s 143us/step - loss: 0.1235 - acc: 0.9664
+Epoch 9/50
+119/119 [==============================] - 0s 139us/step - loss: 0.1445 - acc: 0.9580
+Epoch 10/50
+119/119 [==============================] - 0s 143us/step - loss: 0.1451 - acc: 0.9580
+Epoch 11/50
+119/119 [==============================] - 0s 176us/step - loss: 0.1635 - acc: 0.9496
+Epoch 12/50
+119/119 [==============================] - 0s 149us/step - loss: 0.1716 - acc: 0.9412
+Epoch 13/50
+119/119 [==============================] - 0s 153us/step - loss: 0.1551 - acc: 0.9580
+Epoch 14/50
+119/119 [==============================] - 0s 183us/step - loss: 0.1496 - acc: 0.9496
+Epoch 15/50
+119/119 [==============================] - 0s 144us/step - loss: 0.1398 - acc: 0.9580
+Epoch 16/50
+119/119 [==============================] - 0s 161us/step - loss: 0.1353 - acc: 0.9580
+Epoch 17/50
+119/119 [==============================] - 0s 147us/step - loss: 0.1244 - acc: 0.9664
+Epoch 18/50
+119/119 [==============================] - 0s 136us/step - loss: 0.1279 - acc: 0.9664
+Epoch 19/50
+119/119 [==============================] - 0s 185us/step - loss: 0.1520 - acc: 0.9328
+Epoch 20/50
+119/119 [==============================] - 0s 167us/step - loss: 0.1336 - acc: 0.9664
+Epoch 21/50
+119/119 [==============================] - 0s 167us/step - loss: 0.1358 - acc: 0.9664
+Epoch 22/50
+119/119 [==============================] - 0s 151us/step - loss: 0.1335 - acc: 0.9580
+Epoch 23/50
+119/119 [==============================] - 0s 150us/step - loss: 0.1311 - acc: 0.9580
+Epoch 24/50
+119/119 [==============================] - 0s 166us/step - loss: 0.1311 - acc: 0.9580
+Epoch 25/50
+119/119 [==============================] - 0s 167us/step - loss: 0.1247 - acc: 0.9664
+Epoch 26/50
+119/119 [==============================] - 0s 214us/step - loss: 0.1439 - acc: 0.9412
+Epoch 27/50
+119/119 [==============================] - 0s 179us/step - loss: 0.1335 - acc: 0.9580
+Epoch 28/50
+119/119 [==============================] - 0s 166us/step - loss: 0.1265 - acc: 0.9664
+Epoch 29/50
+119/119 [==============================] - 0s 165us/step - loss: 0.1493 - acc: 0.9664
+Epoch 30/50
+119/119 [==============================] - 0s 218us/step - loss: 0.1352 - acc: 0.9664
+Epoch 31/50
+119/119 [==============================] - 0s 168us/step - loss: 0.1307 - acc: 0.9580
+Epoch 32/50
+119/119 [==============================] - 0s 184us/step - loss: 0.1214 - acc: 0.9748
+Epoch 33/50
+119/119 [==============================] - 0s 193us/step - loss: 0.1211 - acc: 0.9664
+Epoch 34/50
+119/119 [==============================] - 0s 185us/step - loss: 0.1415 - acc: 0.9580
+Epoch 35/50
+119/119 [==============================] - 0s 158us/step - loss: 0.1282 - acc: 0.9580
+Epoch 36/50
+119/119 [==============================] - 0s 144us/step - loss: 0.1231 - acc: 0.9664
+Epoch 37/50
+119/119 [==============================] - 0s 168us/step - loss: 0.1277 - acc: 0.9664
+Epoch 38/50
+119/119 [==============================] - 0s 162us/step - loss: 0.1442 - acc: 0.9496
+Epoch 39/50
+119/119 [==============================] - 0s 166us/step - loss: 0.1540 - acc: 0.9580
+Epoch 40/50
+119/119 [==============================] - 0s 161us/step - loss: 0.1323 - acc: 0.9496
+Epoch 41/50
+119/119 [==============================] - 0s 175us/step - loss: 0.1917 - acc: 0.9244
+Epoch 42/50
+119/119 [==============================] - 0s 156us/step - loss: 0.1910 - acc: 0.9076
+Epoch 43/50
+119/119 [==============================] - 0s 156us/step - loss: 0.1491 - acc: 0.9412
+Epoch 44/50
+119/119 [==============================] - 0s 146us/step - loss: 0.1380 - acc: 0.9664
+Epoch 45/50
+119/119 [==============================] - 0s 137us/step - loss: 0.1376 - acc: 0.9580
+Epoch 46/50
+119/119 [==============================] - 0s 146us/step - loss: 0.1375 - acc: 0.9244
+Epoch 47/50
+119/119 [==============================] - 0s 162us/step - loss: 0.1582 - acc: 0.9580
+Epoch 48/50
+119/119 [==============================] - 0s 152us/step - loss: 0.1135 - acc: 0.9580
+Epoch 49/50
+119/119 [==============================] - 0s 158us/step - loss: 0.1568 - acc: 0.9412
+Epoch 50/50
+119/119 [==============================] - 0s 201us/step - loss: 0.1075 - acc: 0.9664
+
+# 学習過程を2軸プロット
+
+fig,ax1 = plt.subplots()
+ax1.plot(result.epoch,result.history["loss"],color = "blue",label = "Loss")
+
+# 2つのプロットを関連付ける
+ax2 = ax1.twinx()
+ax2.plot(result.epoch,result.history["acc"],color = "orange",label = "Accuracy")
+ax1.set_xlabel("Epochs")
+ax1.set_ylabel("Loss")
+ax2.set_ylabel("Accrtacy")
+
+h1,l1 = ax1.get_legend_handles_labels()
+h2,l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1 + h2,l1 + l2,loc = 'lower right')
+
+plt.show()
+
+list(zip(model.metrics_names,model.evaluate(x_test,np_utils.to_categorical(y_test-1))))
+
+59/59 [==============================] - 0s 74us/step
+[('loss', 0.1796984935210923), ('acc', 0.9322033827587709)]
+
+# モデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(x_train_valid.shape[1],)))
+model.add(Dense(5,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(3,activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',optimizer = Adam(),metrics = ['accuracy'])
+
+# 学習を実行し、学習過程をresultに格納
+
+result = model.fit(x_train_valid,np_utils.to_categorical(y_train_valid-1),epochs=50,batch_size = 100,verbose = 0)
+
+# 学習過程を2軸プロット
+
+fig,ax1 = plt.subplots()
+ax1.plot(result.epoch,result.history["loss"],color = "blue",label = "Loss")
+
+# 2つのプロットを関連付ける
+ax2 = ax1.twinx()
+ax2.plot(result.epoch,result.history["acc"],color = "orange",label = "Accuracy")
+ax1.set_xlabel("Epochs")
+ax1.set_ylabel("Loss")
+ax2.set_ylabel("Accrtacy")
+
+h1,l1 = ax1.get_legend_handles_labels()
+h2,l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1 + h2,l1 + l2,loc = 'lower right')
+
+plt.show()
+
+list(zip(model.metrics_names,model.evaluate(x_test,np_utils.to_categorical(y_test-1))))
+
+59/59 [==============================] - 0s 4ms/step
+[('loss', 6.627720024626134), ('acc', 0.4237288186105631)]
+
+ # モデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(x_train_valid.shape[1],)))
+model.add(Dense(10,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(7,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(5,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(3,activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',optimizer = Adam(),metrics = ['accuracy'])
+
+# 学習を実行し、学習過程をresultに格納
+
+result = model.fit(x_train_valid,np_utils.to_categorical(y_train_valid-1),epochs=50,batch_size = 10,verbose = 1)
+
+# 学習過程を2軸プロット
+
+fig,ax1 = plt.subplots()
+ax1.plot(result.epoch,result.history["loss"],color = "blue",label = "Loss")
+
+# 2つのプロットを関連付ける
+ax2 = ax1.twinx()
+ax2.plot(result.epoch,result.history["acc"],color = "orange",label = "Accuracy")
+ax1.set_xlabel("Epochs")
+ax1.set_ylabel("Loss")
+ax2.set_ylabel("Accrtacy")
+
+h1,l1 = ax1.get_legend_handles_labels()
+h2,l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1 + h2,l1 + l2,loc = 'lower right')
+
+plt.show()
+
+list(zip(model.metrics_names,model.evaluate(x_test,np_utils.to_categorical(y_test-1))))
+
+Epoch 1/50
+119/119 [==============================] - 1s 7ms/step - loss: 1.0730 - acc: 0.3025
+Epoch 2/50
+119/119 [==============================] - 0s 167us/step - loss: 1.0571 - acc: 0.3193
+Epoch 3/50
+119/119 [==============================] - 0s 158us/step - loss: 1.0441 - acc: 0.4454
+Epoch 4/50
+119/119 [==============================] - 0s 160us/step - loss: 1.0283 - acc: 0.4622
+Epoch 5/50
+119/119 [==============================] - 0s 168us/step - loss: 1.0085 - acc: 0.5378
+Epoch 6/50
+119/119 [==============================] - 0s 184us/step - loss: 0.9788 - acc: 0.5966
+Epoch 7/50
+119/119 [==============================] - 0s 178us/step - loss: 0.9525 - acc: 0.6218
+Epoch 8/50
+119/119 [==============================] - 0s 194us/step - loss: 0.9104 - acc: 0.6555
+Epoch 9/50
+119/119 [==============================] - 0s 189us/step - loss: 0.8675 - acc: 0.6387
+Epoch 10/50
+119/119 [==============================] - 0s 188us/step - loss: 0.8456 - acc: 0.6555
+Epoch 11/50
+119/119 [==============================] - 0s 177us/step - loss: 0.7792 - acc: 0.6303
+Epoch 12/50
+119/119 [==============================] - 0s 153us/step - loss: 0.7560 - acc: 0.6807
+Epoch 13/50
+119/119 [==============================] - 0s 172us/step - loss: 0.7334 - acc: 0.6387
+Epoch 14/50
+119/119 [==============================] - 0s 181us/step - loss: 0.7146 - acc: 0.6303
+Epoch 15/50
+119/119 [==============================] - 0s 212us/step - loss: 0.7022 - acc: 0.6639
+Epoch 16/50
+119/119 [==============================] - 0s 188us/step - loss: 0.6740 - acc: 0.6555
+Epoch 17/50
+119/119 [==============================] - 0s 173us/step - loss: 0.6859 - acc: 0.6471
+Epoch 18/50
+119/119 [==============================] - 0s 171us/step - loss: 0.6483 - acc: 0.6555
+Epoch 19/50
+119/119 [==============================] - 0s 164us/step - loss: 0.6677 - acc: 0.6471
+Epoch 20/50
+119/119 [==============================] - 0s 201us/step - loss: 0.6583 - acc: 0.6471
+Epoch 21/50
+119/119 [==============================] - 0s 199us/step - loss: 0.6590 - acc: 0.6134
+Epoch 22/50
+119/119 [==============================] - 0s 183us/step - loss: 0.6488 - acc: 0.6807
+Epoch 23/50
+119/119 [==============================] - 0s 197us/step - loss: 0.6279 - acc: 0.6807
+Epoch 24/50
+119/119 [==============================] - 0s 167us/step - loss: 0.6441 - acc: 0.6555
+Epoch 25/50
+119/119 [==============================] - 0s 191us/step - loss: 0.6615 - acc: 0.6555
+Epoch 26/50
+119/119 [==============================] - 0s 178us/step - loss: 0.6283 - acc: 0.6723
+Epoch 27/50
+119/119 [==============================] - 0s 173us/step - loss: 0.6423 - acc: 0.6471
+Epoch 28/50
+119/119 [==============================] - 0s 191us/step - loss: 0.6151 - acc: 0.6471
+Epoch 29/50
+119/119 [==============================] - 0s 160us/step - loss: 0.6176 - acc: 0.6639
+Epoch 30/50
+119/119 [==============================] - 0s 173us/step - loss: 0.6119 - acc: 0.6807
+Epoch 31/50
+119/119 [==============================] - 0s 175us/step - loss: 0.6104 - acc: 0.6807
+Epoch 32/50
+119/119 [==============================] - 0s 185us/step - loss: 0.6128 - acc: 0.7059
+Epoch 33/50
+119/119 [==============================] - 0s 183us/step - loss: 0.6196 - acc: 0.7059
+Epoch 34/50
+119/119 [==============================] - 0s 170us/step - loss: 0.6393 - acc: 0.6303
+Epoch 35/50
+119/119 [==============================] - 0s 153us/step - loss: 0.6101 - acc: 0.6891
+Epoch 36/50
+119/119 [==============================] - 0s 170us/step - loss: 0.6247 - acc: 0.6807
+Epoch 37/50
+119/119 [==============================] - 0s 172us/step - loss: 0.6137 - acc: 0.6891
+Epoch 38/50
+119/119 [==============================] - 0s 170us/step - loss: 0.6156 - acc: 0.6639
+Epoch 39/50
+119/119 [==============================] - 0s 173us/step - loss: 0.6118 - acc: 0.6891
+Epoch 40/50
+119/119 [==============================] - 0s 238us/step - loss: 0.6158 - acc: 0.7143
+Epoch 41/50
+119/119 [==============================] - 0s 172us/step - loss: 0.6039 - acc: 0.6807
+Epoch 42/50
+119/119 [==============================] - 0s 174us/step - loss: 0.6007 - acc: 0.6975
+Epoch 43/50
+119/119 [==============================] - 0s 176us/step - loss: 0.5984 - acc: 0.6975
+Epoch 44/50
+119/119 [==============================] - 0s 177us/step - loss: 0.5989 - acc: 0.6891
+Epoch 45/50
+119/119 [==============================] - 0s 177us/step - loss: 0.6208 - acc: 0.6555
+Epoch 46/50
+119/119 [==============================] - 0s 175us/step - loss: 0.6559 - acc: 0.6555
+Epoch 47/50
+119/119 [==============================] - 0s 167us/step - loss: 0.5991 - acc: 0.6807
+Epoch 48/50
+119/119 [==============================] - 0s 173us/step - loss: 0.6040 - acc: 0.6891
+Epoch 49/50
+119/119 [==============================] - 0s 208us/step - loss: 0.5942 - acc: 0.6639
+Epoch 50/50
+119/119 [==============================] - 0s 215us/step - loss: 0.6000 - acc: 0.6387
+
+59/59 [==============================] - 0s 5ms/step
+[('loss', 0.5787513821811999), ('acc', 0.6440678057024034)]
+
+ # モデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(x_train_valid.shape[1],)))
+model.add(Dense(10,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(7,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(5,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(3,activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',optimizer = Adam(),metrics = ['accuracy'])
+
+# 学習を実行し、学習過程をresultに格納
+
+result = model.fit(x_train_valid,np_utils.to_categorical(y_train_valid-1),epochs=5000,batch_size = 100,verbose = 0,validation_split=0.3)
+
+# 学習過程を2軸プロット
+
+fig,ax1 = plt.subplots()
+ax1.plot(result.epoch,result.history["loss"],color = "blue",label = "Loss")
+
+# 2つのプロットを関連付ける
+ax2 = ax1.twinx()
+ax2.plot(result.epoch,result.history["val_loss"],color = "orange",label = "Valid Loss")
+ax1.set_xlabel("Epochs")
+ax1.set_ylabel("Loss")
+ax2.set_ylabel("Valid Loss")
+
+h1,l1 = ax1.get_legend_handles_labels()
+h2,l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1 + h2,l1 + l2,loc = 'lower right')
+
+plt.show()
+
+list(zip(model.metrics_names,model.evaluate(x_test,np_utils.to_categorical(y_test-1))))
+
+59/59 [==============================] - 0s 167us/step
+[('loss', 1.1416725516319275), ('acc', 0.8644067725892794)]
+
+# モデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(x_train_valid.shape[1],)))
+model.add(Dense(10,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(7,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(5,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(3,activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',optimizer = Adam(),metrics = ['accuracy'])
+
+es = EarlyStopping(patience=100,verbose=1)
+
+# 学習を実行し、学習過程をresultに格納
+
+result = model.fit(x_train_valid,np_utils.to_categorical(y_train_valid-1),
+                   epochs=5000,
+                   batch_size = 100,
+                   verbose = 0,
+                   validation_split=0.3,
+                   callbacks=[es])
+
+# 学習過程を2軸プロット
+
+fig,ax1 = plt.subplots()
+ax1.plot(result.epoch,result.history["loss"],color = "blue",label = "Loss")
+
+# 2つのプロットを関連
+
+# 定番ライブラリ
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データ分割
+from sklearn.model_selection import train_test_split
+
+# Neural Network 関連
+import keras
+from keras.utils import np_utils
+from keras.models import Sequential
+from keras.layers import Activation, InputLayer, Dense
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping
+
+# R2乗値
+from sklearn.metrics import r2_score
+
+data_housing = pd.read_csv("/content/housing.csv", engine = "python", encoding = "s-jis")
+
+data_housing付ける
+ax2 = ax1.twinx()
+ax2.plot(result.epoch,result.history["val_loss"],color = "orange",label = "Valid Loss")
+ax1.set_xlabel("Epochs")
+ax1.set_ylabel("Loss")
+ax2.set_ylabel("Valid Loss")
+
+h1,l1 = ax1.get_legend_handles_labels()
+h2,l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1 + h2,l1 + l2,loc = 'lower right')
+
+plt.show()
+
+list(zip(model.metrics_names,model.evaluate(x_test,np_utils.to_categorical(y_test-1))))
+
+Epoch 00734: early stopping
+
+59/59 [==============================] - 0s 119us/step
+[('loss', 0.2497200496115927), ('acc', 0.9491525353011439)]
+
+# 定番ライブラリ
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データ分割
+from sklearn.model_selection import train_test_split
+
+# Neural Network 関連
+import keras
+from keras.utils import np_utils
+from keras.models import Sequential
+from keras.layers import Activation, InputLayer, Dense
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping
+
+# R2乗値
+from sklearn.metrics import r2_score
+
+data_housing = pd.read_csv("/content/housing.csv", engine = "python", encoding = "s-jis")
+
+data_housing
+
+	CRIM	ZN	INDUS	CHAS	NOX	RM	AGE	DIS	RAD	TAX	PTRATIO	B	LSTAT	MEDV
+0	0.00632	18.0	2.31	0	0.538	6.575	65.2	4.0900	1	296	15.3	396.90	4.98	24.0
+1	0.02731	0.0	7.07	0	0.469	6.421	78.9	4.9671	2	242	17.8	396.90	9.14	21.6
+2	0.02729	0.0	7.07	0	0.469	7.185	61.1	4.9671	2	242	17.8	392.83	4.03	34.7
+3	0.03237	0.0	2.18	0	0.458	6.998	45.8	6.0622	3	222	18.7	394.63	2.94	33.4
+4	0.06905	0.0	2.18	0	0.458	7.147	54.2	6.0622	3	222	18.7	396.90	5.33	36.2
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+501	0.06263	0.0	11.93	0	0.573	6.593	69.1	2.4786	1	273	21.0	391.99	9.67	22.4
+502	0.04527	0.0	11.93	0	0.573	6.120	76.7	2.2875	1	273	21.0	396.90	9.08	20.6
+503	0.06076	0.0	11.93	0	0.573	6.976	91.0	2.1675	1	273	21.0	396.90	5.64	23.9
+504	0.10959	0.0	11.93	0	0.573	6.794	89.3	2.3889	1	273	21.0	393.45	6.48	22.0
+505	0.04741	0.0	11.93	0	0.573	6.030	80.8	2.5050	1	273	21.0	396.90	7.88	11.9
+506 rows × 14 columns
+
+ # モデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(x_train_valid.shape[1],)))
+model.add(Dense(10,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(7,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(5,activation='relu',kernel_initializer='truncated_normal'))
+model.add(Dense(1,activation='linear'))
+
+model.compile(loss='mean_squared_error',optimizer = Adam(),metrics = ['accuracy'])
+
+es = EarlyStopping(patience=100,verbose=1)
+
+# 学習を実行し、学習過程をresultに格納
+
+result = model.fit(x_train_valid,y_train_valid,
+                   epochs=5000,
+                   batch_size = 100,
+                   verbose = 0,
+                   validation_split=0.3,
+                   callbacks=[es])
+
+# 学習過程を2軸プロット
+
+fig,ax1 = plt.subplots()
+ax1.plot(result.epoch,result.history["loss"],color = "blue",label = "Loss")
+
+# 2つのプロットを関連付ける
+ax2 = ax1.twinx()
+ax2.plot(result.epoch,result.history["val_loss"],color = "orange",label = "Valid Loss")
+ax1.set_xlabel("Epochs")
+ax1.set_ylabel("Loss")
+ax2.set_ylabel("Valid Loss")
+
+h1,l1 = ax1.get_legend_handles_labels()
+h2,l2 = ax2.get_legend_handles_labels()
+ax1.legend(h1 + h2,l1 + l2,loc = 'lower right')
+
+plt.show()
+
+list(zip(model.metrics_names,model.evaluate(x_test,y_test)))
+
+Epoch 01465: early stopping
+
+59/59 [==============================] - 0s 165us/step
+[('loss', 0.08538066848354825), ('acc', 0.9322033999329906)]
+
