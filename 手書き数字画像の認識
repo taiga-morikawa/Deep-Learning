@@ -1,0 +1,642 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データ分割
+from sklearn.model_selection import train_test_split
+
+# Neural Network関連
+from keras.datasets import mnist
+from keras.utils import np_utils
+from keras.models import Sequential
+from keras.layers import InputLayer, Dense, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+
+# 画像読み込み用
+from PIL import Image
+
+# 手書き数字画像データの読み込み
+(X_train_valid, y_train_valid), (X_test, y_test) = mnist.load_data()
+
+# データ分割
+X_train, X_valid, y_train, y_valid =\
+    train_test_split(X_train_valid, y_train_valid, test_size=0.3, random_state=0)
+    
+# 分類するクラス数は0～9の10クラス
+n_classes = 10
+
+# 学習データを5枚見てみる
+for i in range(5):
+    plt.figure(figsize=(2, 2))
+    plt.imshow(X_train[i].reshape((28, 28)), cmap='gray')
+    plt.show()
+    
+
+[ ]
+from keras.layers import InputLayer, Dense, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+
+# 画像読み込み用
+from PIL import Image
+
+
+[ ]
+# 手書き数字画像データの読み込み
+(X_train_valid, y_train_valid), (X_test, y_test) = mnist.load_data()
+
+# データ分割
+X_train, X_valid, y_train, y_valid =\
+    train_test_split(X_train_valid, y_train_valid, test_size=0.3, random_state=0)
+[ ]
+# 分類するクラス数は0～9の10クラス
+n_classes = 10
+[ ]
+# 学習データを5枚見てみる
+for i in range(5):
+    plt.figure(figsize=(2, 2))
+    plt.imshow(X_train[i].reshape((28, 28)), cmap='gray')
+    plt.show()
+
+
+普通のNeural Network
+
+# 28 x 28の画像 (n, 28, 28) --> (n, 784) 横一列に展開する
+reshape_size = X_train.shape[1] * X_train.shape[2]
+X_train = X_train.reshape(len(X_train), reshape_size)
+X_valid = X_valid.reshape(len(X_valid), reshape_size)
+X_test = X_test.reshape(len(X_test), reshape_size)
+
+# 正規化（画素値 0～255 --> 0～1 に変換）
+X_train = X_train/255
+X_valid = X_valid/255
+X_test = X_test/255
+
+# One-hot表現に直す
+y_train = np_utils.to_categorical(y_train, n_classes)
+y_valid = np_utils.to_categorical(y_valid, n_classes)
+y_test = np_utils.to_categorical(y_test, n_classes)
+
+# 4層NNのモデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(reshape_size,)))
+model.add(Dense(128, activation="relu"))
+model.add(Dense(128, activation="relu"))
+model.add(Dense(n_classes, activation="softmax"))
+model.summary()
+
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+dense_1 (Dense)              (None, 128)               100480    
+_________________________________________________________________
+dense_2 (Dense)              (None, 128)               16512     
+_________________________________________________________________
+dense_3 (Dense)              (None, 10)                1290      
+=================================================================
+Total params: 118,282
+Trainable params: 118,282
+Non-trainable params: 0
+_________________________________________________________________
+
+y_valid.shape
+
+(18000, 10)
+
+# モデル構築
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+# モデル学習
+history = model.fit(X_train,
+                    y_train,
+                    batch_size=128,
+                    epochs=50,
+                    verbose=1,
+                    validation_data=(X_valid, y_valid))
+                    
+Train on 42000 samples, validate on 18000 samples
+Epoch 1/50
+42000/42000 [==============================] - 3s 78us/step - loss: 0.3930 - acc: 0.8891 - val_loss: 0.1877 - val_acc: 0.9446
+Epoch 2/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.1556 - acc: 0.9542 - val_loss: 0.1485 - val_acc: 0.9559
+Epoch 3/50
+42000/42000 [==============================] - 1s 35us/step - loss: 0.1077 - acc: 0.9678 - val_loss: 0.1123 - val_acc: 0.9659
+Epoch 4/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0790 - acc: 0.9760 - val_loss: 0.0940 - val_acc: 0.9700
+Epoch 5/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0630 - acc: 0.9812 - val_loss: 0.0904 - val_acc: 0.9722
+Epoch 6/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0505 - acc: 0.9848 - val_loss: 0.0935 - val_acc: 0.9697
+Epoch 7/50
+42000/42000 [==============================] - 1s 35us/step - loss: 0.0399 - acc: 0.9878 - val_loss: 0.0836 - val_acc: 0.9747
+Epoch 8/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0312 - acc: 0.9905 - val_loss: 0.0788 - val_acc: 0.9749
+Epoch 9/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0256 - acc: 0.9921 - val_loss: 0.0933 - val_acc: 0.9731
+Epoch 10/50
+42000/42000 [==============================] - 1s 35us/step - loss: 0.0209 - acc: 0.9941 - val_loss: 0.0750 - val_acc: 0.9769
+Epoch 11/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0152 - acc: 0.9955 - val_loss: 0.0833 - val_acc: 0.9756
+Epoch 12/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0144 - acc: 0.9959 - val_loss: 0.0947 - val_acc: 0.9724
+Epoch 13/50
+42000/42000 [==============================] - 1s 36us/step - loss: 0.0158 - acc: 0.9951 - val_loss: 0.0928 - val_acc: 0.9745
+Epoch 14/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0116 - acc: 0.9965 - val_loss: 0.0996 - val_acc: 0.9744
+Epoch 15/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0087 - acc: 0.9974 - val_loss: 0.1048 - val_acc: 0.9732
+Epoch 16/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0098 - acc: 0.9970 - val_loss: 0.1178 - val_acc: 0.9699
+Epoch 17/50
+42000/42000 [==============================] - 1s 35us/step - loss: 0.0106 - acc: 0.9965 - val_loss: 0.1047 - val_acc: 0.9759
+Epoch 18/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0074 - acc: 0.9978 - val_loss: 0.1078 - val_acc: 0.9759
+Epoch 19/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0096 - acc: 0.9970 - val_loss: 0.1084 - val_acc: 0.9761
+Epoch 20/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0042 - acc: 0.9989 - val_loss: 0.1210 - val_acc: 0.9736
+Epoch 21/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0049 - acc: 0.9986 - val_loss: 0.1019 - val_acc: 0.9788
+Epoch 22/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0072 - acc: 0.9975 - val_loss: 0.1147 - val_acc: 0.9734
+Epoch 23/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0130 - acc: 0.9954 - val_loss: 0.1099 - val_acc: 0.9752
+Epoch 24/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0103 - acc: 0.9964 - val_loss: 0.1118 - val_acc: 0.9755
+Epoch 25/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0025 - acc: 0.9993 - val_loss: 0.1093 - val_acc: 0.9764
+Epoch 26/50
+42000/42000 [==============================] - 1s 35us/step - loss: 0.0047 - acc: 0.9985 - val_loss: 0.1160 - val_acc: 0.9772
+Epoch 27/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0054 - acc: 0.9980 - val_loss: 0.1090 - val_acc: 0.9770
+Epoch 28/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0038 - acc: 0.9990 - val_loss: 0.1182 - val_acc: 0.9773
+Epoch 29/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0058 - acc: 0.9983 - val_loss: 0.1300 - val_acc: 0.9755
+Epoch 30/50
+42000/42000 [==============================] - 1s 35us/step - loss: 0.0101 - acc: 0.9965 - val_loss: 0.1430 - val_acc: 0.9732
+Epoch 31/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0073 - acc: 0.9975 - val_loss: 0.1249 - val_acc: 0.9768
+Epoch 32/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0030 - acc: 0.9988 - val_loss: 0.1209 - val_acc: 0.9787
+Epoch 33/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0022 - acc: 0.9994 - val_loss: 0.1417 - val_acc: 0.9754
+Epoch 34/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0064 - acc: 0.9981 - val_loss: 0.1169 - val_acc: 0.9777
+Epoch 35/50
+42000/42000 [==============================] - 1s 34us/step - loss: 0.0034 - acc: 0.9990 - val_loss: 0.1257 - val_acc: 0.9766
+Epoch 36/50
+42000/42000 [==============================] - 1s 33us/step - loss: 0.0064 - acc: 0.9981 - val_loss: 0.1187 - val_acc: 0.9782
+Epoch 37/50
+42000/42000 [==============================] - 1s 34us/step - loss: 8.3052e-04 - acc: 0.9998 - val_loss: 0.1152 - val_acc: 0.9802
+Epoch 38/50
+42000/42000 [==============================] - 1s 34us/step - loss: 2.2866e-04 - acc: 1.0000 - val_loss: 0.1111 - val_acc: 0.9805
+Epoch 39/50
+42000/42000 [==============================] - 1s 34us/step - loss: 8.0235e-05 - acc: 1.0000 - val_loss: 0.1117 - val_acc: 0.9802
+Epoch 40/50
+42000/42000 [==============================] - 1s 34us/step - loss: 5.3692e-05 - acc: 1.0000 - val_loss: 0.1121 - val_acc: 0.9804
+Epoch 41/50
+42000/42000 [==============================] - 1s 35us/step - loss: 4.4362e-05 - acc: 1.0000 - val_loss: 0.1126 - val_acc: 0.9806
+Epoch 42/50
+42000/42000 [==============================] - 1s 34us/step - loss: 3.7811e-05 - acc: 1.0000 - val_loss: 0.1133 - val_acc: 0.9805
+Epoch 43/50
+42000/42000 [==============================] - 1s 34us/step - loss: 3.2922e-05 - acc: 1.0000 - val_loss: 0.1138 - val_acc: 0.9806
+Epoch 44/50
+42000/42000 [==============================] - 1s 34us/step - loss: 2.8767e-05 - acc: 1.0000 - val_loss: 0.1145 - val_acc: 0.9807
+Epoch 45/50
+42000/42000 [==============================] - 1s 34us/step - loss: 2.5301e-05 - acc: 1.0000 - val_loss: 0.1153 - val_acc: 0.9806
+Epoch 46/50
+42000/42000 [==============================] - 1s 34us/step - loss: 2.2350e-05 - acc: 1.0000 - val_loss: 0.1160 - val_acc: 0.9806
+Epoch 47/50
+42000/42000 [==============================] - 1s 34us/step - loss: 1.9568e-05 - acc: 1.0000 - val_loss: 0.1162 - val_acc: 0.9809
+Epoch 48/50
+42000/42000 [==============================] - 1s 34us/step - loss: 1.7340e-05 - acc: 1.0000 - val_loss: 0.1175 - val_acc: 0.9808
+Epoch 49/50
+42000/42000 [==============================] - 1s 34us/step - loss: 1.5342e-05 - acc: 1.0000 - val_loss: 0.1179 - val_acc: 0.9811
+Epoch 50/50
+42000/42000 [==============================] - 1s 34us/step - loss: 1.3408e-05 - acc: 1.0000 - val_loss: 0.1187 - val_acc: 0.9808
+
+# 精度のplot
+plt.plot(history.history['acc'], marker='.', label='acc')
+plt.plot(history.history['val_acc'], marker='.', label='val_acc')
+plt.title('model accuracy')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('accuracy')
+plt.legend(loc='best')
+plt.show()
+
+# 損失のplot
+plt.plot(history.history['loss'], marker='.', label='loss')
+plt.plot(history.history['val_loss'], marker='.', label='val_loss')
+plt.title('model loss')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend(loc='best')
+plt.show()
+
+# テストデータに対する精度
+print(model.metrics_names)
+model.evaluate(X_test, y_test)
+
+['loss', 'acc']
+10000/10000 [==============================] - 0s 38us/step
+[0.11690251301498476, 0.9804]
+
+
+[ ]
+from keras.layers import InputLayer, Dense, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+
+# 画像読み込み用
+from PIL import Image
+
+
+[ ]
+# 手書き数字画像データの読み込み
+(X_train_valid, y_train_valid), (X_test, y_test) = mnist.load_data()
+
+# データ分割
+X_train, X_valid, y_train, y_valid =\
+    train_test_split(X_train_valid, y_train_valid, test_size=0.3, random_state=0)
+[ ]
+# 分類するクラス数は0～9の10クラス
+n_classes = 10
+[ ]
+# 学習データを5枚見てみる
+for i in range(5):
+    plt.figure(figsize=(2, 2))
+    plt.imshow(X_train[i].reshape((28, 28)), cmap='gray')
+    plt.show()
+
+
+普通のNeural Network
+[ ]
+# 28 x 28の画像 (n, 28, 28) --> (n, 784) 横一列に展開する
+reshape_size = X_train.shape[1] * X_train.shape[2]
+X_train = X_train.reshape(len(X_train), reshape_size)
+X_valid = X_valid.reshape(len(X_valid), reshape_size)
+X_test = X_test.reshape(len(X_test), reshape_size)
+[ ]
+# 正規化（画素値 0～255 --> 0～1 に変換）
+X_train = X_train/255
+X_valid = X_valid/255
+X_test = X_test/255
+[ ]
+# One-hot表現に直す
+y_train = np_utils.to_categorical(y_train, n_classes)
+y_valid = np_utils.to_categorical(y_valid, n_classes)
+y_test = np_utils.to_categorical(y_test, n_classes)
+[ ]
+# 4層NNのモデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(reshape_size,)))
+model.add(Dense(128, activation="relu"))
+model.add(Dense(128, activation="relu"))
+model.add(Dense(n_classes, activation="softmax"))
+model.summary()
+
+
+[ ]
+y_valid.shape
+
+
+[ ]
+# モデル構築
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+# モデル学習
+history = model.fit(X_train,
+                    y_train,
+                    batch_size=128,
+                    epochs=50,
+                    verbose=1,
+                    validation_data=(X_valid, y_valid))
+
+
+[ ]
+# 精度のplot
+plt.plot(history.history['acc'], marker='.', label='acc')
+plt.plot(history.history['val_acc'], marker='.', label='val_acc')
+plt.title('model accuracy')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('accuracy')
+plt.legend(loc='best')
+plt.show()
+
+# 損失のplot
+plt.plot(history.history['loss'], marker='.', label='loss')
+plt.plot(history.history['val_loss'], marker='.', label='val_loss')
+plt.title('model loss')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend(loc='best')
+plt.show()
+
+
+[ ]
+# テストデータに対する精度
+print(model.metrics_names)
+model.evaluate(X_test, y_test)
+
+Convolutional Neural Network (CNN)
+
+# 手書き数字画像データの読み込み直し
+(X_train_valid, y_train_valid), (X_test, y_test) = mnist.load_data()
+
+# データ分割
+X_train, X_valid, y_train, y_valid =\
+    train_test_split(X_train_valid, y_train_valid, test_size=0.3, random_state=0)
+    
+# 28 x 28の画像 (n, 28, 28) --> (n, 28, 28, 1) grayscaleで1チャンネルにreshape
+X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
+X_valid = X_valid.reshape(X_valid.shape[0], 28, 28, 1)
+X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+
+# 正規化（画素値 0～255 --> 0～1 に変換）
+X_train = X_train/255
+X_valid = X_valid/255
+X_test = X_test/255
+
+# One-hot表現に直す
+y_train = np_utils.to_categorical(y_train, n_classes)
+y_valid = np_utils.to_categorical(y_valid, n_classes)
+y_test = np_utils.to_categorical(y_test, n_classes)
+
+# モデル定義
+model = Sequential()
+model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+
+# モデル構築
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+# モデル学習
+history = model.fit(X_train,
+                    y_train,
+                    batch_size=128,
+                    epochs=10,
+                    verbose=1,
+                    validation_data=(X_valid, y_valid))
+                    
+Train on 42000 samples, validate on 18000 samples
+Epoch 1/10
+42000/42000 [==============================] - 5s 111us/step - loss: 0.2127 - acc: 0.9364 - val_loss: 0.0717 - val_acc: 0.9778
+Epoch 2/10
+42000/42000 [==============================] - 3s 82us/step - loss: 0.0572 - acc: 0.9833 - val_loss: 0.0496 - val_acc: 0.9839
+Epoch 3/10
+42000/42000 [==============================] - 3s 82us/step - loss: 0.0365 - acc: 0.9882 - val_loss: 0.0435 - val_acc: 0.9864
+Epoch 4/10
+42000/42000 [==============================] - 4s 84us/step - loss: 0.0227 - acc: 0.9930 - val_loss: 0.0361 - val_acc: 0.9896
+Epoch 5/10
+42000/42000 [==============================] - 3s 83us/step - loss: 0.0152 - acc: 0.9953 - val_loss: 0.0444 - val_acc: 0.9871
+Epoch 6/10
+42000/42000 [==============================] - 3s 83us/step - loss: 0.0118 - acc: 0.9961 - val_loss: 0.0440 - val_acc: 0.9877
+Epoch 7/10
+42000/42000 [==============================] - 3s 81us/step - loss: 0.0097 - acc: 0.9970 - val_loss: 0.0520 - val_acc: 0.9869
+Epoch 8/10
+42000/42000 [==============================] - 3s 82us/step - loss: 0.0072 - acc: 0.9977 - val_loss: 0.0581 - val_acc: 0.9869
+Epoch 9/10
+42000/42000 [==============================] - 3s 82us/step - loss: 0.0059 - acc: 0.9981 - val_loss: 0.0498 - val_acc: 0.9884
+Epoch 10/10
+42000/42000 [==============================] - 3s 82us/step - loss: 0.0072 - acc: 0.9975 - val_loss: 0.0454 - val_acc: 0.9888
+
+# 精度のplot
+plt.plot(history.history['acc'], marker='.', label='acc')
+plt.plot(history.history['val_acc'], marker='.', label='val_acc')
+plt.title('model accuracy')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('accuracy')
+plt.legend(loc='best')
+plt.show()
+
+# 損失のplot
+plt.plot(history.history['loss'], marker='.', label='loss')
+plt.plot(history.history['val_loss'], marker='.', label='val_loss')
+plt.title('model loss')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend(loc='best')
+plt.show()
+
+# テストデータに対する精度
+print(model.metrics_names)
+model.evaluate(X_test, y_test)
+
+['loss', 'acc']
+10000/10000 [==============================] - 1s 70us/step
+[0.03954575441654961, 0.989]
+
+
+[ ]
+from keras.layers import InputLayer, Dense, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+
+# 画像読み込み用
+from PIL import Image
+
+
+[ ]
+# 手書き数字画像データの読み込み
+(X_train_valid, y_train_valid), (X_test, y_test) = mnist.load_data()
+
+# データ分割
+X_train, X_valid, y_train, y_valid =\
+    train_test_split(X_train_valid, y_train_valid, test_size=0.3, random_state=0)
+[ ]
+# 分類するクラス数は0～9の10クラス
+n_classes = 10
+[ ]
+# 学習データを5枚見てみる
+for i in range(5):
+    plt.figure(figsize=(2, 2))
+    plt.imshow(X_train[i].reshape((28, 28)), cmap='gray')
+    plt.show()
+
+
+普通のNeural Network
+[ ]
+# 28 x 28の画像 (n, 28, 28) --> (n, 784) 横一列に展開する
+reshape_size = X_train.shape[1] * X_train.shape[2]
+X_train = X_train.reshape(len(X_train), reshape_size)
+X_valid = X_valid.reshape(len(X_valid), reshape_size)
+X_test = X_test.reshape(len(X_test), reshape_size)
+[ ]
+# 正規化（画素値 0～255 --> 0～1 に変換）
+X_train = X_train/255
+X_valid = X_valid/255
+X_test = X_test/255
+[ ]
+# One-hot表現に直す
+y_train = np_utils.to_categorical(y_train, n_classes)
+y_valid = np_utils.to_categorical(y_valid, n_classes)
+y_test = np_utils.to_categorical(y_test, n_classes)
+[ ]
+# 4層NNのモデル定義
+model = Sequential()
+model.add(InputLayer(input_shape=(reshape_size,)))
+model.add(Dense(128, activation="relu"))
+model.add(Dense(128, activation="relu"))
+model.add(Dense(n_classes, activation="softmax"))
+model.summary()
+
+
+[ ]
+y_valid.shape
+
+
+[ ]
+# モデル構築
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+# モデル学習
+history = model.fit(X_train,
+                    y_train,
+                    batch_size=128,
+                    epochs=50,
+                    verbose=1,
+                    validation_data=(X_valid, y_valid))
+
+
+[ ]
+# 精度のplot
+plt.plot(history.history['acc'], marker='.', label='acc')
+plt.plot(history.history['val_acc'], marker='.', label='val_acc')
+plt.title('model accuracy')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('accuracy')
+plt.legend(loc='best')
+plt.show()
+
+# 損失のplot
+plt.plot(history.history['loss'], marker='.', label='loss')
+plt.plot(history.history['val_loss'], marker='.', label='val_loss')
+plt.title('model loss')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend(loc='best')
+plt.show()
+
+
+[ ]
+# テストデータに対する精度
+print(model.metrics_names)
+model.evaluate(X_test, y_test)
+
+
+Convolutional Neural Network (CNN)
+[ ]
+# 手書き数字画像データの読み込み直し
+(X_train_valid, y_train_valid), (X_test, y_test) = mnist.load_data()
+
+# データ分割
+X_train, X_valid, y_train, y_valid =\
+    train_test_split(X_train_valid, y_train_valid, test_size=0.3, random_state=0)
+[ ]
+# 28 x 28の画像 (n, 28, 28) --> (n, 28, 28, 1) grayscaleで1チャンネルにreshape
+X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
+X_valid = X_valid.reshape(X_valid.shape[0], 28, 28, 1)
+X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+[ ]
+# 正規化（画素値 0～255 --> 0～1 に変換）
+X_train = X_train/255
+X_valid = X_valid/255
+X_test = X_test/255
+[ ]
+# One-hot表現に直す
+y_train = np_utils.to_categorical(y_train, n_classes)
+y_valid = np_utils.to_categorical(y_valid, n_classes)
+y_test = np_utils.to_categorical(y_test, n_classes)
+[ ]
+# モデル定義
+model = Sequential()
+model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+[ ]
+# モデル構築
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+# モデル学習
+history = model.fit(X_train,
+                    y_train,
+                    batch_size=128,
+                    epochs=10,
+                    verbose=1,
+                    validation_data=(X_valid, y_valid))
+
+
+[ ]
+# 精度のplot
+plt.plot(history.history['acc'], marker='.', label='acc')
+plt.plot(history.history['val_acc'], marker='.', label='val_acc')
+plt.title('model accuracy')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('accuracy')
+plt.legend(loc='best')
+plt.show()
+
+# 損失のplot
+plt.plot(history.history['loss'], marker='.', label='loss')
+plt.plot(history.history['val_loss'], marker='.', label='val_loss')
+plt.title('model loss')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend(loc='best')
+plt.show()
+
+
+[ ]
+# テストデータに対する精度
+print(model.metrics_names)
+model.evaluate(X_test, y_test)
+
+自分の手書き文字を認識してみる
+
+# 画像読み込み
+image = np.array(Image.open('test.png'))
+
+# 画像表示
+plt.figure(figsize=(2, 2))
+plt.imshow(image, cmap='gray')
+plt.show()
+
+# 読み込んだ画像は、Red/Green/Blueの三層構造になっている
+image.shape
+
+(28, 28, 3)
+
+# モデル入力用の形(n, 28, 28, 1)に画像をreshapeして予測
+pred_one_hot = model.predict(image[:,:,0].reshape(1, 28, 28, 1))
+
+# One-hot表現をクラス表現に直す
+np.argmax(pred_one_hot)
+
+4
+
+
+    
